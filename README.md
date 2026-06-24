@@ -1,163 +1,204 @@
-[中文文档](README_zh.md)
+<p align="center">
+<h1 align="center">AI Text Optimizer</h1>
+</p>
+<p align="center">
+  <a href="https://img.shields.io/badge/version-v1.0.1-blue">
+    <img alt="version" src="https://img.shields.io/badge/version-v1.0.1-blue?color=009922" />
+  </a>
+  <a>
+    <img alt="platform" src="https://img.shields.io/badge/platform-Windows-blue?color=0078D6" />
+  </a>
+  <a>
+    <img alt="license" src="https://img.shields.io/badge/license-MIT-red" />
+  </a>
+  <a>
+    <img alt="PRs-Welcome" src="https://img.shields.io/badge/PRs-Welcome-green" />
+  </a>
+  <br />
+</p>
 
-# AI Text Optimizer
+<div align="center">
+<p align="center">
+  <a href="#motivation">Motivation</a>/
+  <a href="#design">Design</a>/
+  <a href="#quick-start">Quick Start</a>/
+  <a href="#structure">Structure</a>/
+  <a href="#faq">FAQ</a>
+</p>
+</div>
 
-**Select text → Press a hotkey → AI fixes it → Paste back**
+> [中文文档](README_zh.md)
 
-Write emails, fix code, polish copy — no window switching, no browser tabs.
+## Motivation
 
----
+In daily work, we constantly face: a cryptic error in the terminal, an email that needs polishing, docs in a foreign language. The usual workflow is: select text → switch to browser → open ChatGPT → paste → wait → copy response → switch back → paste. That's six context switches for one fix.
 
-## What it does
+What if you could just: select text, press one key, done?
 
-**No web app, no browser extension. Select text, press one key, done.**
+That's this tool. It's not "yet another AI wrapper" — it's a **system-level productivity utility**: tray-resident, globally hotkeyed, works in any application.
 
-The difference from browser plugins and ChatGPT: **system-wide hotkey + tray background + multi-AI support**.
+## Design
 
-## Demo
-
-<!-- Record a 15-second GIF: select text → press Ctrl+Shift+Q → result pops up -->
-<!-- Use ScreenToGif, put the file in project root -->
+### Workflow
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  Select text in any app                                  │
-│         ↓                                               │
-│  Press Ctrl+Shift+Q                                     │
-│         ↓                                               │
-│  AI result window pops up, paste it back                 │
-└─────────────────────────────────────────────────────────┘
+Select text → Ctrl+Shift+Q → AI analyzes → result window → one-click copy
 ```
 
-> The real thing looks 10x better — replace this with a GIF
+You never leave the current application.
 
-## Why use this?
+### Context Awareness
 
-| Scenario | Pain point | How this helps |
-|----------|------------|----------------|
-| Writing emails in English | Not sure about grammar | Select → One-click polish → Paste back |
-| Code errors | Copy-pasting to ChatGPT is tedious | Select error → Hotkey → See fix directly |
-| Reading English docs | Switching windows to translate | Select → Hotkey → Translation appears in place |
-| Writing copy | Endless rewording | Select → Hotkey → AI rewrites it |
+Before sending text to AI, the analyzer extracts:
 
-## Key features
+| Dimension | What it detects | Used for |
+|-----------|----------------|----------|
+| Source app | Foreground window (VS Code, Chrome, Terminal, etc.) | Tailored prompt generation |
+| Content type | Error, code, log, config, or plain text | Automatic template selection |
+| Language | Python, JS, Java, Go, Rust, SQL, and more | Informing AI of language context |
 
-- **System-wide hotkey** — Works in any app, no window switching
-- **Tray background** — Stays out of taskbar, quietly waiting
-- **Multi-AI support** — OpenAI, DeepSeek, Claude, Qwen, local Ollama...
-- **Smart templates** — 10+ built-in templates for code fix, translation, summary, etc.
-- **Bilingual UI** — Chinese / English interface
+This means you don't need to manually pick a template — the tool figures out what kind of text you selected.
 
-## Get started in 3 minutes
+### Multi-Provider Support
 
-### 1. Install
+| Provider | Models | Notes |
+|----------|--------|-------|
+| OpenAI | GPT-4, GPT-4-turbo, GPT-3.5-turbo | OpenAI API compatible |
+| DeepSeek | deepseek-chat, deepseek-coder | Cost-effective |
+| Zhipu AI | GLM-4, GLM-4-flash | Chinese LLM |
+| Moonshot | moonshot-v1-8k/32k/128k | Ultra-long context |
+| Qwen | qwen-turbo, qwen-plus, qwen-max | Alibaba Cloud |
+| Claude | claude-3-opus/sonnet | Anthropic |
+| Ollama | llama3, codellama, mistral | Local, free |
+
+Any service compatible with OpenAI's `/v1/chat/completions` endpoint works.
+
+### Built-in Templates
+
+10 preset templates covering common dev tasks:
+
+| Template | Category | Use case |
+|----------|----------|----------|
+| Code Fix | Code | Analyze errors, provide fix |
+| Code Optimize | Code | Improve performance & readability |
+| Code Explain | Code | Explain what code does |
+| Code Review | Code | Review quality, suggest improvements |
+| Bug Debug | Debug | Systematic issue tracing |
+| Stack Trace | Debug | Parse stack traces, find root cause |
+| Config Fix | Config | Diagnose & fix configuration |
+| Log Analyze | Log | Extract insights from logs |
+| Translate | General | Translate selected text |
+| Summarize | General | Extract key points |
+
+Custom templates can be added/edited/deleted via the UI, with `{text}`, `{source}`, `{language}` variables.
+
+## Quick Start
+
+### Requirements
+
+- Windows 10/11
+- Python 3.10+
+
+### Install
 
 ```bash
-# Clone
 git clone https://github.com/yourusername/ai-text-optimizer.git
 cd ai-text-optimizer
-
-# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Configure AI service
+### Configure
 
 ```bash
-# Copy example config
 cp config.example.json config.json
-
-# Edit config.json, add your API key
 ```
 
-Or after launch: right-click tray icon → **Settings** → Select AI service → Enter API key → Test connection → Save
+Edit `config.json`:
 
-### 3. Launch
+```json
+{
+  "ai_service": {
+    "provider": "openai_compatible",
+    "api_key": "your-api-key",
+    "base_url": "https://api.openai.com/v1",
+    "model": "gpt-4"
+  },
+  "hotkey": {
+    "trigger": "ctrl+shift+q"
+  }
+}
+```
+
+Or right-click the tray icon → Settings after launch.
+
+### Run
 
 ```bash
 python main.py
 ```
 
-Tray icon appears in bottom-right corner. You're ready!
+A tray icon appears. Press `Ctrl+Shift+Q` to start using.
 
-### 4. Use
+### Build EXE
 
-1. **Select any text**
-2. **Press `Ctrl+Shift+Q`** (customizable)
-3. **AI result window pops up, paste it back**
+```bash
+pip install pyinstaller
+python build.py
+```
 
-## Custom hotkey
+Output: `dist/AI文本优化器.exe`
 
-Supports "press to set" mode:
-
-1. Right-click tray icon → Hotkey display
-2. Click "Start listening"
-3. Press your desired key combo (e.g. `Ctrl+Q`, `Alt+Q`)
-4. Auto-saved
-
-Press ESC to cancel.
-
-## Supported AI services
-
-| Service | Details |
-|---------|---------|
-| OpenAI | GPT series |
-| DeepSeek | DeepSeek series |
-| Zhipu AI | GLM series |
-| Moonshot | Kimi series |
-| Qwen | Qwen series |
-| Claude | Claude series |
-| Ollama | Local deployment, free to use |
-
-> Any service compatible with OpenAI API format works, supports latest models
-
-> Any service compatible with OpenAI API format works
-
-## Custom templates
-
-Right-click tray icon → Prompt templates → Add
-
-Available variables:
-- `{text}` — Selected text
-- `{source}` — Source application
-- `{language}` — Programming language
-
-## Project structure
+## Structure
 
 ```
 ai-text-optimizer/
-├── main.py                  # Entry point
-├── config.py                # Configuration manager
-├── ai_service.py            # AI service adapter
-├── prompt_templates.py      # Prompt template manager
-├── context_analyzer.py      # Context analyzer
-├── clipboard.py             # Clipboard operations
-├── hotkey.py                # Hotkey listener
-├── text_cleaner.py          # Markdown cleaner
-├── language.py              # Multi-language support
+├── main.py                   # Entry point, lifecycle management
+├── config.py                 # JSON config with dot-path access
+├── ai_service.py             # AI adapter (OpenAI + Claude protocols)
+├── prompt_templates.py       # Template manager (built-in + custom)
+├── context_analyzer.py       # Window detection + text classification
+├── clipboard.py              # Clipboard ops (Ctrl+C simulation)
+├── hotkey.py                 # Global hotkey listener (dynamic keys)
+├── text_cleaner.py           # Markdown → plain text
+├── language.py               # zh/en bilingual support
+├── logger.py                 # Structured logging (console + file)
+├── icons.py                  # Programmatic icon generation (Pillow)
+├── build.py                  # PyInstaller build script
+├── tests/                    # Unit tests (pytest, 29 cases)
 └── ui/
-    ├── floating_window.py   # Result window
-    ├── settings_window.py   # Settings window
-    ├── hotkey_window.py     # Hotkey settings
-    ├── template_window.py   # Template manager
-    └── tray.py              # System tray
+    ├── floating_window.py    # AI result popup
+    ├── settings_window.py    # Settings panel
+    ├── hotkey_window.py      # "Press to set" hotkey recorder
+    ├── template_window.py    # Template browser & editor
+    └── tray.py               # System tray icon & menu
 ```
 
 ## FAQ
 
 **Q: Hotkey not working?**
-Check if another app is using the same hotkey. Try setting a new one via tray menu.
 
-**Q: AI returns Markdown format?**
-The program auto-cleans Markdown. If it still appears, check if `text_cleaner.py` is working.
+Another app may be using the same combo (e.g., screenshot tools). Right-click tray → Hotkey settings → record a new combo.
+
+**Q: AI returns Markdown formatting?**
+
+The built-in cleaner strips bold markers, code fences, headings, and link syntax. If artifacts remain, file an issue.
 
 **Q: Which AI services are supported?**
-Any service compatible with OpenAI API format.
+
+Any OpenAI-compatible API (`/v1/chat/completions`) and Anthropic Claude API. Local Ollama works too.
+
+**Q: How to switch between Chinese and English?**
+
+Right-click tray icon → Language → select. Auto-detects system language on first run.
 
 ## License
 
 MIT License
 
+## Disclaimer
+
+You need your own API key for AI services. Keep it safe — `config.json` is gitignored. Never commit API keys to public repositories.
+
 ---
 
-If you find this useful, give it a star!
+If this tool helps you, give it a star ⭐
